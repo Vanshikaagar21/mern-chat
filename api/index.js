@@ -7,6 +7,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const ws = require("ws");
+const Message = require("./models/Message");
 
 dotenv.config();
 mongoose.connect(process.env.MONGO_URL);
@@ -113,13 +114,28 @@ wss.on("connection", (connection, req) => {
     }
   }
 
-  connection.on("message", (message) => {
+  connection.on("message", async (message) => {
     messageData = JSON.parse(message.toString());
     const { recipient, text } = messageData;
     if (recipient && text) {
+      const messageDoc = await Message.create({
+        sender: connection.userId,
+        recipient,
+        text,
+      });
+
       [...wss.clients]
         .filter((c) => c.userId === recipient)
-        .forEach((c) => c.send(JSON.stringify({ text })));
+        .forEach((c) =>
+          c.send(
+            JSON.stringify({
+              text,
+              sender: connection.userId,
+              recipient,
+              id: messageDoc._id,
+            })
+          )
+        );
     }
   });
 
@@ -138,4 +154,5 @@ wss.on("connection", (connection, req) => {
 
 //RYAbOIbfpMFQi6Zw MongoDB password
 
-//2:01:17
+//4:28:00
+// mera 3:08:00

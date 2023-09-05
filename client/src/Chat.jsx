@@ -2,6 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import Avatar from "./Avatar";
 import Logo from "./Logo";
 import { UserContext } from "./UserContext";
+import { uniqBy } from "lodash";
 
 export default function Chat() {
   const [ws, setWs] = useState(null);
@@ -27,13 +28,11 @@ export default function Chat() {
 
   function handleMessage(ev) {
     const messageData = JSON.parse(ev.data);
+    console.log({ ev, messageData });
     if ("online" in messageData) {
       showOnlinePeople(messageData.online);
-    } else {
-      setMessages((prev) => [
-        ...prev,
-        { isOur: false, text: messageData.text },
-      ]);
+    } else if ("text" in messageData) {
+      setMessages((prev) => [...prev, { ...messageData }]);
     }
   }
 
@@ -46,11 +45,21 @@ export default function Chat() {
       })
     );
     setNewMessageText("");
-    setMessages((prev) => [...prev, { text: newMessageText, isOur: true }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        text: newMessageText,
+        sender: id,
+        recipient: selectedUserId,
+        id: Date.now(),
+      },
+    ]);
   }
 
   const onlinePeopleExclOurUser = { ...onlinePeople };
   delete onlinePeopleExclOurUser[id];
+
+  const messagesWithoutDupes = uniqBy(messages, "id");
 
   return (
     <div className="flex h-screen">
@@ -84,14 +93,35 @@ export default function Chat() {
               </div>
             </div>
           )}
+          {!!selectedUserId && (
+            <div className="overflow-y-scroll">
+              {messagesWithoutDupes.map((message) => (
+                <div
+                  className={
+                    " " + (message.sender === id ? "text-right" : "text-left")
+                  }
+                >
+                  <div
+                    className={
+                      "text-left inline-block p-2 my-2 rounded-md text-sm " +
+                      (message.sender === id
+                        ? "bg-blue-500 text-white"
+                        : "bg-white text-gray-500")
+                    }
+                  >
+                    sender = {message.sender}
+                    <br />
+                    receiver = {message.recipient}
+                    <br />
+                    my id = {id}
+                    <br />
+                    text ={message.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        {!!selectedUserId && (
-          <div>
-            {messages.map((message) => (
-              <div>{message.text}</div>
-            ))}
-          </div>
-        )}
         {!!selectedUserId && (
           <form className="flex gap-2" onSubmit={sendMessage}>
             <input
