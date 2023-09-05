@@ -30,7 +30,10 @@ export default function Chat() {
     if ("online" in messageData) {
       showOnlinePeople(messageData.online);
     } else {
-      console.log({ messageData });
+      setMessages((prev) => [
+        ...prev,
+        { isOur: false, text: messageData.text },
+      ]);
     }
   }
 
@@ -43,7 +46,7 @@ export default function Chat() {
       })
     );
     setNewMessageText("");
-    setMessages((prev) => [...prev, { text: newMessageText }]);
+    setMessages((prev) => [...prev, { text: newMessageText, isOur: true }]);
   }
 
   const onlinePeopleExclOurUser = { ...onlinePeople };
@@ -82,6 +85,13 @@ export default function Chat() {
             </div>
           )}
         </div>
+        {!!selectedUserId && (
+          <div>
+            {messages.map((message) => (
+              <div>{message.text}</div>
+            ))}
+          </div>
+        )}
         {!!selectedUserId && (
           <form className="flex gap-2" onSubmit={sendMessage}>
             <input
