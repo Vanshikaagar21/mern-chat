@@ -3,6 +3,7 @@ import Avatar from "./Avatar";
 import Logo from "./Logo";
 import { UserContext } from "./UserContext";
 import { uniqBy } from "lodash";
+import { useRef } from "react";
 
 export default function Chat() {
   const [ws, setWs] = useState(null);
@@ -11,6 +12,7 @@ export default function Chat() {
   const [newMessageText, setNewMessageText] = useState("");
   const [messages, setMessages] = useState([]);
   const { username, id } = useContext(UserContext);
+  const divUnderMessages = useRef();
 
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:4040");
@@ -56,6 +58,13 @@ export default function Chat() {
     ]);
   }
 
+  useEffect(() => {
+    const div = divUnderMessages.current;
+    if (div) {
+      div.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [messages]);
+
   const onlinePeopleExclOurUser = { ...onlinePeople };
   delete onlinePeopleExclOurUser[id];
 
@@ -94,31 +103,34 @@ export default function Chat() {
             </div>
           )}
           {!!selectedUserId && (
-            <div className="overflow-y-scroll">
-              {messagesWithoutDupes.map((message) => (
-                <div
-                  className={
-                    " " + (message.sender === id ? "text-right" : "text-left")
-                  }
-                >
+            <div className="relative h-full">
+              <div className="overflow-y-scroll absolute top-0 left-0 right-0 bottom-4">
+                {messagesWithoutDupes.map((message) => (
                   <div
                     className={
-                      "text-left inline-block p-2 my-2 rounded-md text-sm " +
-                      (message.sender === id
-                        ? "bg-blue-500 text-white"
-                        : "bg-white text-gray-500")
+                      " " + (message.sender === id ? "text-right" : "text-left")
                     }
                   >
-                    sender = {message.sender}
-                    <br />
-                    receiver = {message.recipient}
-                    <br />
-                    my id = {id}
-                    <br />
-                    text ={message.text}
+                    <div
+                      className={
+                        "text-left inline-block p-2 my-2 rounded-md text-sm " +
+                        (message.sender === id
+                          ? "bg-blue-500 text-white"
+                          : "bg-white text-gray-500")
+                      }
+                    >
+                      sender = {message.sender}
+                      <br />
+                      receiver = {message.recipient}
+                      <br />
+                      my id = {id}
+                      <br />
+                      text ={message.text}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+                <div ref={divUnderMessages}></div>
+              </div>
             </div>
           )}
         </div>
