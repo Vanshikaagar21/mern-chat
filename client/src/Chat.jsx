@@ -64,7 +64,7 @@ export default function Chat() {
         text: newMessageText,
         sender: id,
         recipient: selectedUserId,
-        id: Date.now(),
+        _id: Date.now(),
       },
     ]);
   }
@@ -78,14 +78,17 @@ export default function Chat() {
 
   useEffect(() => {
     if (selectedUserId) {
-      axios.get("/messages/" + selectedUserId);
+      axios.get("/messages/" + selectedUserId).then(res => {
+        setMessages(res.data);
+        
+      });
     }
   }, [selectedUserId]);
 
   const onlinePeopleExclOurUser = { ...onlinePeople };
   delete onlinePeopleExclOurUser[id];
 
-  const messagesWithoutDupes = uniqBy(messages, "id");
+  const messagesWithoutDupes = uniqBy(messages, "_id");
 
   return (
     <div className="flex h-screen">
@@ -136,13 +139,13 @@ export default function Chat() {
                           : "bg-white text-gray-500")
                       }
                     >
-                      sender = {message.sender}
+                      {/* sender = {message.sender}
                       <br />
                       receiver = {message.recipient}
                       <br />
                       my id = {id}
-                      <br />
-                      text ={message.text}
+                      <br /> */}
+                      {message.text}
                     </div>
                   </div>
                 ))}
