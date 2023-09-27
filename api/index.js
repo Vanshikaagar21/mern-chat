@@ -55,6 +55,11 @@ app.get("/messages/:userId", async (req, res) => {
   res.json(messages);
 });
 
+app.get("/people", async (req, res) => {
+  const users = await User.find({}, { _id: 1, username: 1 });
+  res.json(users);
+});
+
 app.get("/profile", (req, res) => {
   const token = req.cookies?.token;
   if (token) {
@@ -179,6 +184,3 @@ wss.on("connection", (connection, req) => {
 });
 
 //RYAbOIbfpMFQi6Zw MongoDB password
-
-//4:28:00
-// mera 3:08:00
